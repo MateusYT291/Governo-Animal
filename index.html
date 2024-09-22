@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Cartão de Identidade Animal</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #e7f3fe;
+        }
+        h1 {
+            text-align: center;
+            margin: 20px 0;
+        }
+        #identity-form {
+            max-width: 600px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        input[type="text"],
+        input[type="file"],
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #cartao-preview {
+            width: 1080px;
+            height: 535px;
+            border: 1px solid #000;
+            background-image: url('images/base.png');
+            background-size: cover;
+            position: relative;
+            display: none; /* Inicialmente oculto */
+            margin: auto;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        #imagem-animal {
+            width: 358px;
+            height: 475px;
+            position: absolute;
+            top: 30px;
+            right: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            z-index: 1; /* Certifica-se de que a imagem do animal fique na frente */
+        }
+        #logo {
+            width: 150px; /* Tamanho da logo */
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+        #informacoes {
+            color: #000;
+            position: absolute;
+            top: 100px;
+            left: 20px;
+            font-size: 20px; /* Aumenta o tamanho do texto */
+        }
+        #upload-imgur {
+            display: none;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1><img src="images/logo.png" alt="Logo" style="width: 150px;"></h1>
+    <form id="identity-form">
+        <label>Nome: <input type="text" id="nome" required></label>
+        <label>Animal: <input type="text" id="animal" required></label>
+        <label>Raça: <input type="text" id="raca" required></label>
+        <label>Estado: 
+            <select id="estado" required>
+                <option value="">Selecione um estado</option>
+                <option value="AC">Acre</option>
+                <option value="AL">Alagoas</option>
+                <option value="AP">Amapá</option>
+                <option value="AM">Amazonas</option>
+                <option value="BA">Bahia</option>
+                <option value="CE">Ceará</option>
+                <option value="DF">Distrito Federal</option>
+                <option value="ES">Espírito Santo</option>
+                <option value="GO">Goiás</option>
+                <option value="MA">Maranhão</option>
+                <option value="MT">Mato Grosso</option>
+                <option value="MS">Mato Grosso do Sul</option>
+                <option value="MG">Minas Gerais</option>
+                <option value="PA">Pará</option>
+                <option value="PB">Paraíba</option>
+                <option value="PR">Paraná</option>
+                <option value="PE">Pernambuco</option>
+                <option value="PI">Piauí</option>
+                <option value="RJ">Rio de Janeiro</option>
+                <option value="RN">Rio Grande do Norte</option>
+                <option value="RS">Rio Grande do Sul</option>
+                <option value="RO">Rondônia</option>
+                <option value="RR">Roraima</option>
+                <option value="SC">Santa Catarina</option>
+                <option value="SP">São Paulo</option>
+                <option value="SE">Sergipe</option>
+                <option value="TO">Tocantins</option>
+            </select>
+        </label>
+        <label>CPF: <input type="text" id="cpf"></label>
+        <label>RG: <input type="text" id="rg"></label>
+        <label>Imagem do Animal: <input type="file" id="imagem" accept="image/*" required></label>
+        <button type="submit">Criar/Atualizar Cartão</button>
+    </form>
+
+    <div id="cartao-preview">
+        <img id="logo" src="images/logo.png" alt="Logo">
+        <div id="informacoes"></div>
+        <img id="imagem-animal" src="" alt="Imagem do Animal" style="display: none;">
+    </div>
+    <button id="upload-imgur">Baixar Cartão</button>
+
+    <script>
+        function gerarCPF(estado) {
+            const randomNumbers = Array.from({ length: 9 }, () => Math.floor(Math.random() * 10)).join('');
+            const cpfBase = `${randomNumbers}${Math.floor(Math.random() * 100)}`;
+            return `${cpfBase.slice(0, 3)}.${cpfBase.slice(3, 6)}.${cpfBase.slice(6, 9)}-${cpfBase.slice(9)}`;
+        }
+
+        function gerarRG() {
+            const randomRG = Math.floor(Math.random() * 1000000000);
+            return randomRG.toString().padStart(10, '0');
+        }
+
+        function atualizarCartao(nome, animal, raca, cpf, rg, imagemUrl) {
+            const informacoes = document.getElementById('informacoes');
+            informacoes.innerHTML = `
+                <h2>Cartão de Identidade Animal</h2>
+                <p><strong>Nome:</strong> ${nome}</p>
+                <p><strong>Animal:</strong> ${animal}</p>
+                <p><strong>Raça:</strong> ${raca}</p>
+                <p><strong>CPF:</strong> ${cpf}</p>
+                <p><strong>RG:</strong> ${rg}</p>
+            `;
+            const img = document.getElementById('imagem-animal');
+            img.src = imagemUrl; // Define a imagem
+            img.style.display = 'block'; // Mostra a imagem
+            document.getElementById('cartao-preview').style.display = 'block'; // Mostra o cartão
+        }
+
+        document.getElementById('identity-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const estado = document.getElementById('estado').value;
+            const nome = document.getElementById('nome').value;
+            const animal = document.getElementById('animal').value;
+            const raca = document.getElementById('raca').value;
+            const imagemInput = document.getElementById('imagem');
+            const cpfInput = document.getElementById('cpf');
+            const rgInput = document.getElementById('rg');
+
+            // Geração de CPF e RG se estiverem vazios
+            const cpf = cpfInput.value || gerarCPF(estado);
+            const rg = rgInput.value || gerarRG();
+
+            const file = imagemInput.files[0];
+            const formData = new FormData();
+            formData.append('image_file', file);
+
+            const removeBgApiKey = 'b3oC7GYVfP3MinRrQMneTA4X';
+            const response = await fetch('https://api.remove.bg/v1.0/removebg', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Api-Key': removeBgApiKey
+                }
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                atualizarCartao(nome, animal, raca, cpf, rg, url);
+                document.getElementById('upload-imgur').style.display = 'block';
+                            } else {
+                alert('Erro ao remover o fundo da imagem. Tente novamente.');
+            }
+        });
+
+        document.getElementById('upload-imgur').addEventListener('click', async function() {
+            const cartao = document.getElementById('cartao-preview');
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            canvas.width = 1080;
+            canvas.height = 535;
+
+            // Desenha o cartão no canvas
+            ctx.drawImage(cartao, 0, 0);
+
+            // Converte o canvas para Data URL
+            const imageDataUrl = canvas.toDataURL('image/png');
+
+            // Faz o upload da imagem para o Imgur
+            const response = await fetch('https://api.imgur.com/3/image', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Client-ID db9abdbd30b8a46',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    image: imageDataUrl.split(',')[1],
+                    type: 'base64'
+                })
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                alert('Imagem carregada com sucesso: ' + result.data.link);
+                window.open(result.data.link, '_blank'); // Abre o link da imagem em uma nova aba
+            } else {
+                alert('Erro ao enviar a imagem para o Imgur: ' + result.data.error);
+            }
+        });
+    </script>
+</body>
+</html>
