@@ -186,8 +186,8 @@
             const nome = document.getElementById('nome').value;
             const animal = document.getElementById('animal').value;
             const raca = document.getElementById('raca').value;
-            const cpf = document.getElementById('cpf').value || 'N/A';
-            const rg = document.getElementById('rg').value || 'N/A';
+            const cpf = document.getElementById('informacoes').querySelector('p:nth-child(4)').textContent.split(': ')[1];
+            const rg = document.getElementById('informacoes').querySelector('p:nth-child(5)').textContent.split(': ')[1];
             const img = document.getElementById('imagem-animal').src;
 
             if (!img) {
@@ -220,7 +220,7 @@
 
                 pdf.save('cartao_identidade_animal.pdf');
             } catch (error) {
-                console.error('Erro ao adicionar a imagem ao PDF:', error);
+                console.error('Erro ao gerar o PDF:', error);
                 alert('Erro ao gerar o PDF. Tente novamente.');
             }
         });
