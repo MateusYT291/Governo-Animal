@@ -218,7 +218,6 @@
                 pdf.setLineWidth(4);
                 pdf.line(10, 260, 200, 260); // Borda superior
                 pdf.addImage('images/logo.png', 'PNG', 10, 265, 150, 0); // Logo no canto inferior esquerdo
-                pdf.line(10, 295, 200, 295); // Borda inferior
 
                 pdf.save('cartao_identidade_animal.pdf');
             } catch (error) {
