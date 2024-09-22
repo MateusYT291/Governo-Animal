@@ -27,8 +27,7 @@
             margin-bottom: 10px;
         }
         input[type="text"],
-        input[type="file"],
-        select {
+        input[type="file"] {
             width: 100%;
             padding: 10px;
             margin-top: 5px;
@@ -83,11 +82,12 @@
             left: 20px;
             font-size: 20px; /* Aumenta o tamanho do texto */
         }
-        #upload-imgur {
+        #upload-pdf {
             display: none;
             margin-top: 20px;
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <h1><img src="images/logo.png" alt="Logo" style="width: 150px;"></h1>
@@ -95,38 +95,7 @@
         <label>Nome: <input type="text" id="nome" required></label>
         <label>Animal: <input type="text" id="animal" required></label>
         <label>Raça: <input type="text" id="raca" required></label>
-        <label>Estado: 
-            <select id="estado" required>
-                <option value="">Selecione um estado</option>
-                <option value="AC">Acre</option>
-                <option value="AL">Alagoas</option>
-                <option value="AP">Amapá</option>
-                <option value="AM">Amazonas</option>
-                <option value="BA">Bahia</option>
-                <option value="CE">Ceará</option>
-                <option value="DF">Distrito Federal</option>
-                <option value="ES">Espírito Santo</option>
-                <option value="GO">Goiás</option>
-                <option value="MA">Maranhão</option>
-                <option value="MT">Mato Grosso</option>
-                <option value="MS">Mato Grosso do Sul</option>
-                <option value="MG">Minas Gerais</option>
-                <option value="PA">Pará</option>
-                <option value="PB">Paraíba</option>
-                <option value="PR">Paraná</option>
-                <option value="PE">Pernambuco</option>
-                <option value="PI">Piauí</option>
-                <option value="RJ">Rio de Janeiro</option>
-                <option value="RN">Rio Grande do Norte</option>
-                <option value="RS">Rio Grande do Sul</option>
-                <option value="RO">Rondônia</option>
-                <option value="RR">Roraima</option>
-                <option value="SC">Santa Catarina</option>
-                <option value="SP">São Paulo</option>
-                <option value="SE">Sergipe</option>
-                <option value="TO">Tocantins</option>
-            </select>
-        </label>
+        <label>Estado: <input type="text" id="estado" required placeholder="Digite seu estado"></label>
         <label>CPF: <input type="text" id="cpf"></label>
         <label>RG: <input type="text" id="rg"></label>
         <label>Imagem do Animal: <input type="file" id="imagem" accept="image/*" required></label>
@@ -138,10 +107,12 @@
         <div id="informacoes"></div>
         <img id="imagem-animal" src="" alt="Imagem do Animal" style="display: none;">
     </div>
-    <button id="upload-imgur" style="display: none;">Baixar Cartão</button>
+    <button id="upload-pdf" style="display: none;">Baixar PDF</button>
 
     <script>
-        function gerarCPF(estado) {
+        const { jsPDF } = window.jspdf;
+
+        function gerarCPF() {
             const randomNumbers = Array.from({ length: 9 }, () => Math.floor(Math.random() * 10)).join('');
             const cpfBase = `${randomNumbers}${Math.floor(Math.random() * 100)}`;
             return `${cpfBase.slice(0, 3)}.${cpfBase.slice(3, 6)}.${cpfBase.slice(6, 9)}-${cpfBase.slice(9)}`;
@@ -166,12 +137,18 @@
             img.src = imagemUrl; // Define a imagem
             img.style.display = 'block'; // Mostra a imagem
             document.getElementById('cartao-preview').style.display = 'block'; // Mostra o cartão
+            document.getElementById('upload-pdf').style.display = 'block'; // Mostra o botão para baixar PDF
         }
 
         document.getElementById('identity-form').addEventListener('submit', async function(event) {
             event.preventDefault();
 
-            const estado = document.getElementById('estado').value;
+            const estado = document.getElementById('estado').value.trim();
+            if (!estado) {
+                alert('Por favor, digite um estado válido.');
+                return;
+            }
+
             const nome = document.getElementById('nome').value;
             const animal = document.getElementById('animal').value;
             const raca = document.getElementById('raca').value;
@@ -180,7 +157,7 @@
             const rgInput = document.getElementById('rg');
 
             // Geração de CPF e RG se estiverem vazios
-            const cpf = cpfInput.value || gerarCPF(estado);
+            const cpf = cpfInput.value || gerarCPF();
             const rg = rgInput.value || gerarRG();
 
             const file = imagemInput.files[0];
@@ -200,15 +177,53 @@
                 const blob = await response.blob();
                 const url = URL.createObjectURL(blob);
                 atualizarCartao(nome, animal, raca, cpf, rg, url);
-                document.getElementById('upload-imgur').style.display = 'block';
             } else {
                 alert('Erro ao remover o fundo da imagem. Tente novamente.');
             }
         });
 
-        document.getElementById('upload-imgur').addEventListener('click', async function() {
-            const cartao = document.getElementById('cartao-preview');
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
+        document.getElementById('upload-pdf').addEventListener('click', async function() {
+            const nome = document.getElementById('nome').value;
+            const animal = document.getElementById('animal').value;
+            const raca = document.getElementById('raca').value;
+            const cpf = document.getElementById('cpf').value || 'N/A';
+            const rg = document.getElementById('rg').value || 'N/A';
+            const img = document.getElementById('imagem-animal').src;
 
-            canvas
+            if (!img) {
+                alert('A imagem do animal é necessária para gerar o PDF.');
+                return;
+            }
+
+            const pdf = new jsPDF();
+            try {
+                const imgData = await fetch(img).then(res => res.blob()).then(blob => new Promise(resolve => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.readAsDataURL(blob);
+                }));
+
+                pdf.addImage(imgData, 'PNG', 10, 10, 180, 180); // Ajuste a posição e o tamanho conforme necessário
+                pdf.setFontSize(16);
+                pdf.text(`Nome: ${nome}`, 10, 200);
+                pdf.text(`Animal: ${animal}`, 10, 210);
+                pdf.text(`Raça: ${raca}`, 10, 220);
+                pdf.text(`CPF: ${cpf}`, 10, 230);
+                pdf.text(`RG: ${rg}`, 10, 240);
+
+                // Adiciona a borda
+                pdf.setDrawColor(0, 0, 0); // Preto
+                pdf.setLineWidth(4);
+                pdf.line(10, 260, 200, 260); // Borda superior
+                pdf.addImage('images/logo.png', 'PNG', 10, 265, 150, 0); // Logo no canto inferior esquerdo
+                pdf.line(10, 295, 200, 295); // Borda inferior
+
+                pdf.save('cartao_identidade_animal.pdf');
+            } catch (error) {
+                console.error('Erro ao adicionar a imagem ao PDF:', error);
+                alert('Erro ao gerar o PDF. Tente novamente.');
+            }
+        });
+    </script>
+</body>
+</html>
