@@ -186,8 +186,10 @@
             const nome = document.getElementById('nome').value;
             const animal = document.getElementById('animal').value;
             const raca = document.getElementById('raca').value;
-            const cpf = document.getElementById('informacoes').querySelector('p:nth-child(4)').textContent.split(': ')[1];
-            const rg = document.getElementById('informacoes').querySelector('p:nth-child(5)').textContent.split(': ')[1];
+            const informacoes = document.getElementById('informacoes').innerHTML;
+            const cpf = informacoes.match(/CPF:<\/strong> (.*)<\/p>/)[1];
+            const rg = informacoes.match(/RG:<\/strong> (.*)<\/p>/)[1];
+
             const img = document.getElementById('imagem-animal').src;
 
             if (!img) {
